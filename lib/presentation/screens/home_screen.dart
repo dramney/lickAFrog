@@ -9,6 +9,9 @@ import 'package:frog/presentation/widgets/frog_logo.dart';
 import 'package:frog/presentation/widgets/grass_logo.dart';
 import 'package:frog/presentation/widgets/frog_effect_overlay.dart';
 
+import '../modules/profile_module.dart';
+import '../routes/app_router.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -149,6 +152,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     ],
                                   ),
                                 ),
+                                // Modify the profile icon button in the HomeScreen class:
+
                                 IconButton(
                                   icon: Container(
                                     padding: const EdgeInsets.all(8),
@@ -159,9 +164,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     child: const Icon(Icons.person, color: Colors.white),
                                   ),
                                   onPressed: () {
-                                    // Відкриття профілю
+                                    Navigator.of(context)
+                                        .pushNamed(AppRouter.profileRoute)
+                                        .then((_) {
+                                      final authState = context.read<AuthBloc>().state;
+                                      if (authState is AuthAuthenticated) {
+                                        context.read<FrogBloc>().add(
+                                          LoadFrogDataEvent(userId: authState.user.id),
+                                        );
+                                      }
+                                    });
                                   },
                                 ),
+
                               ],
                             ),
                           ),

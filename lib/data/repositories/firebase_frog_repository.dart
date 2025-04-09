@@ -9,6 +9,7 @@ class FirebaseFrogRepository implements FrogRepository {
   FirebaseFrogRepository({required FirebaseFirestore firestore})
       : _firestore = firestore;
 
+  @override
   Future<FrogData> getFrogData(String userId) async {
     try {
       final userDoc = await _firestore.collection('users').doc(userId).get();

@@ -8,7 +8,9 @@ import 'package:get_it/get_it.dart';
 import '../data/repositories/firebase_frog_repository.dart';
 import '../domain/blocs/auth/auth_event.dart';
 import '../domain/blocs/frog/frog_bloc.dart';
+import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/frog_repository.dart';
+import '../domain/repositories/profile_repository.dart';
 
 class FrogApp extends StatelessWidget {
   const FrogApp({super.key});
@@ -16,33 +18,41 @@ class FrogApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<FrogRepository>(
+          create: (context) => FirebaseFrogRepository(
+            firestore: FirebaseFirestore.instance,
+          ),
+        ),
+        RepositoryProvider<AuthRepository>(
+          create: (_) => GetIt.instance<AuthRepository>(),
+        ),
+        RepositoryProvider<ProfileRepository>(
+          create: (_) => GetIt.instance<ProfileRepository>(),
+        ),
+
+        // інші провайдери...
+      ],
+      child: MultiBlocProvider(
         providers: [
-          RepositoryProvider<FrogRepository>(
-            create: (context) => FirebaseFrogRepository(
-              firestore: FirebaseFirestore.instance,
+          BlocProvider<AuthBloc>(
+            create: (_) => GetIt.instance<AuthBloc>()..add(CheckAuthStatusEvent()),
+          ),
+          BlocProvider(
+            create: (context) => FrogBloc(
+              frogRepository: context.read<FrogRepository>(),
             ),
           ),
-          // Інші репозиторії...
         ],
-          child:  MultiBlocProvider(
-      providers: [
-        BlocProvider<AuthBloc>(
-          create: (_) => GetIt.instance<AuthBloc>()..add(CheckAuthStatusEvent()),
+        child: MaterialApp(
+          title: 'Frog App',
+          theme: AppTheme.lightTheme,
+          debugShowCheckedModeBanner: false,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+          initialRoute: AppRouter.splashRoute,
         ),
-        BlocProvider(
-          create: (context) => FrogBloc(
-            frogRepository: context.read<FrogRepository>(),
-          ),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Frog App',
-        theme: AppTheme.lightTheme,
-        debugShowCheckedModeBanner: false,
-        onGenerateRoute: AppRouter.onGenerateRoute,
-        initialRoute: AppRouter.splashRoute,
       ),
-    ),
     );
+
   }
 }
