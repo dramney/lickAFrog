@@ -9,7 +9,6 @@ import 'package:frog/presentation/widgets/frog_logo.dart';
 import 'package:frog/presentation/widgets/grass_logo.dart';
 import 'package:frog/presentation/widgets/frog_effect_overlay.dart';
 
-import '../modules/profile_module.dart';
 import '../routes/app_router.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -195,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   ),
                                   child: const Icon(Icons.group, color: Colors.white),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(context, AppRouter.friendsRoute);
+                                },
                               ),
                               const SizedBox(height: 8),
                               IconButton(
@@ -207,7 +208,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   ),
                                   child: const Icon(Icons.emoji_events, color: Colors.white),
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(context, AppRouter.leaderboardRoute);
+                                },
                               ),
                             ],
                           ),

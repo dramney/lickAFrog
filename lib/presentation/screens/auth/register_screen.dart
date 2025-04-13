@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:frog/presentation/routes/app_router.dart';
-import 'package:frog/presentation/widgets/frog_logo.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frog/domain/blocs/auth/auth_bloc.dart';
 import 'package:frog/domain/blocs/auth/auth_event.dart';
 import 'package:frog/domain/blocs/auth/auth_state.dart';
+import 'package:frog/presentation/routes/app_router.dart';
+import 'package:frog/presentation/widgets/frog_logo.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+import 'widgets/rounded_input.dart';
+
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _nicknameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  String? _errorText;
 
   @override
   void dispose() {
     _nicknameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -33,9 +39,9 @@ class _LoginScreenState extends State<LoginScreen> {
           if (state is AuthAuthenticated) {
             Navigator.pushReplacementNamed(context, AppRouter.homeRoute);
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            setState(() {
+              _errorText = state.message;
+            });
           }
         },
         builder: (context, state) {
@@ -51,44 +57,48 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const FrogLogo(size: 100),
                         const SizedBox(height: 48),
-                        TextFormField(
+                        RoundedInput(
                           controller: _nicknameController,
-                          decoration: const InputDecoration(
-                            hintText: 'Нікнейм', // Nickname in Ukrainian
-                          ),
+                          hintText: 'Нікнейм',
+                          errorText: _errorText?.contains('нікнейм') == true ? _errorText : null,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your nickname';
+                              return 'Введіть нікнейм';
                             }
                             return null;
                           },
-                          key: const Key('login_nickname'),
-                          autofillHints: const [AutofillHints.username],
                         ),
                         const SizedBox(height: 16),
-                        TextFormField(
+                        RoundedInput(
                           controller: _passwordController,
-                          decoration: const InputDecoration(
-                            hintText: 'Пароль', // Password in Ukrainian
-                          ),
+                          hintText: 'Пароль',
                           obscureText: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
+                              return 'Введіть пароль';
+                            }
+                            if (value.length < 6) {
+                              return 'Пароль має містити щонайменше 6 символів';
                             }
                             return null;
                           },
-                          key: const Key('login_password'),
-                          autofillHints: const [AutofillHints.password],
                         ),
                         const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: () {
-                            // Forgot password logic
+                        RoundedInput(
+                          controller: _confirmPasswordController,
+                          hintText: 'Повторіть пароль',
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Підтвердіть пароль';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Паролі не співпадають';
+                            }
+                            return null;
                           },
-                          child: const Text('Повторіть пароль'), // Confirm password in Ukrainian
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -97,24 +107,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : () {
                               if (_formKey.currentState!.validate()) {
                                 context.read<AuthBloc>().add(
-                                  LoginEvent(
-                                    nickname: _nicknameController.text,
-                                    password: _passwordController.text,
+                                  RegisterEvent(
+                                    nickname: _nicknameController.text.trim(),
+                                    password: _passwordController.text.trim(),
                                   ),
                                 );
                               }
                             },
                             child: state is AuthLoading
                                 ? const CircularProgressIndicator()
-                                : const Text('Увійти'), // Login in Ukrainian
+                                : const Text('Зареєструватися'),
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, AppRouter.registerRoute);
+                            Navigator.pushNamed(context, AppRouter.loginRoute);
                           },
-                          child: const Text('Зареєструватися'), // Register in Ukrainian
+                          child: const Text('Увійти'),
                         ),
                       ],
                     ),
