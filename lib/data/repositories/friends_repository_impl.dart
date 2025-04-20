@@ -1,4 +1,3 @@
-// Файл: data/repositories/friends_repository_impl.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/friends_repository.dart';
@@ -9,13 +8,40 @@ class FriendsRepositoryImpl implements FriendsRepository {
   FriendsRepositoryImpl({required FirebaseFirestore firestore})
       : _firestore = firestore;
 
+  // Helper method to safely extract frogRef ID
+  String _extractFrogRefId(dynamic frogRefData) {
+    if (frogRefData == null) return '';
+
+    if (frogRefData is DocumentReference) {
+      return frogRefData.id; // Get the ID directly
+    } else if (frogRefData is String) {
+      // If it's a path, extract the last part (id)
+      return frogRefData.split('/').last;
+    }
+    return '';
+  }
+
+  // Helper method to convert Firestore data to User object
+  User _documentToUser(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>?;
+    if (data == null) {
+      return User(id: doc.id, nickname: '', frogRef: '');
+    }
+
+    return User(
+      id: doc.id,
+      nickname: data['nickname'] ?? '',
+      frogRef: _extractFrogRefId(data['frogRef']),
+    );
+  }
+
   @override
   Future<List<User>> getFriends(String userId) async {
     try {
       // Отримуємо документ користувача
       final userDoc = await _firestore.collection('users').doc(userId).get();
 
-      if (!userDoc.exists || !(userDoc.data()?.containsKey('friends') ?? false)) {
+      if (!userDoc.exists || !userDoc.data()!.containsKey('friends')) {
         return [];
       }
 
@@ -31,26 +57,7 @@ class FriendsRepositoryImpl implements FriendsRepository {
       for (String friendId in List<String>.from(friendIds)) {
         final friendDoc = await _firestore.collection('users').doc(friendId).get();
         if (friendDoc.exists) {
-          // Створюємо об'єкт User безпосередньо, без використання UserModel
-          final data = friendDoc.data() as Map<String, dynamic>;
-
-          // Отримуємо frogRef як шлях до документа
-          String frogRef = '';
-          if (data['frogRef'] != null) {
-            if (data['frogRef'] is DocumentReference) {
-              // Якщо frogRef є посиланням на документ
-              frogRef = (data['frogRef'] as DocumentReference).path.split('/').last;
-            } else if (data['frogRef'] is String) {
-              // Якщо frogRef є стрічкою
-              frogRef = data['frogRef'].toString().split('/').last;
-            }
-          }
-
-          friends.add(User(
-            id: friendDoc.id,
-            nickname: data['nickname'] ?? '',
-            frogRef: frogRef,
-          ));
+          friends.add(_documentToUser(friendDoc));
         }
       }
 
@@ -67,7 +74,7 @@ class FriendsRepositoryImpl implements FriendsRepository {
       // Отримуємо документ користувача
       final userDoc = await _firestore.collection('users').doc(userId).get();
 
-      if (!userDoc.exists || !(userDoc.data()?.containsKey('friendRequests') ?? false)) {
+      if (!userDoc.exists || !userDoc.data()!.containsKey('friendRequests')) {
         return [];
       }
 
@@ -83,26 +90,7 @@ class FriendsRepositoryImpl implements FriendsRepository {
       for (String requestId in List<String>.from(requestIds)) {
         final requesterDoc = await _firestore.collection('users').doc(requestId).get();
         if (requesterDoc.exists) {
-          // Створюємо об'єкт User безпосередньо, без використання UserModel
-          final data = requesterDoc.data() as Map<String, dynamic>;
-
-          // Отримуємо frogRef як шлях до документа
-          String frogRef = '';
-          if (data['frogRef'] != null) {
-            if (data['frogRef'] is DocumentReference) {
-              // Якщо frogRef є посиланням на документ
-              frogRef = (data['frogRef'] as DocumentReference).path.split('/').last;
-            } else if (data['frogRef'] is String) {
-              // Якщо frogRef є стрічкою
-              frogRef = data['frogRef'].toString().split('/').last;
-            }
-          }
-
-          requests.add(User(
-            id: requesterDoc.id,
-            nickname: data['nickname'] ?? '',
-            frogRef: frogRef,
-          ));
+          requests.add(_documentToUser(requesterDoc));
         }
       }
 
@@ -126,26 +114,7 @@ class FriendsRepositoryImpl implements FriendsRepository {
         return null;
       }
 
-      final doc = querySnapshot.docs.first;
-      final data = doc.data();
-
-      // Отримуємо frogRef як шлях до документа
-      String frogRef = '';
-      if (data['frogRef'] != null) {
-        if (data['frogRef'] is DocumentReference) {
-          // Якщо frogRef є посиланням на документ
-          frogRef = (data['frogRef'] as DocumentReference).path.split('/').last;
-        } else if (data['frogRef'] is String) {
-          // Якщо frogRef є стрічкою
-          frogRef = data['frogRef'].toString().split('/').last;
-        }
-      }
-
-      return User(
-        id: doc.id,
-        nickname: data['nickname'] ?? '',
-        frogRef: frogRef,
-      );
+      return _documentToUser(querySnapshot.docs.first);
     } catch (e) {
       print('Error searching user: $e');
       return null;
