@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:frog/data/repositories/visit_repository_impl.dart';
 import 'package:frog/domain/blocs/friends/friends_bloc.dart';
+import 'package:frog/domain/blocs/visit/visit_bloc.dart';
 import 'package:frog/domain/repositories/auth_repository.dart';
 import 'package:frog/data/repositories/auth_repository_impl.dart';
 import 'package:frog/data/repositories/profile_repository_impl.dart';
@@ -13,6 +15,7 @@ import 'package:frog/domain/repositories/leaderboard_repository.dart';
 import 'package:frog/domain/blocs/auth/auth_bloc.dart';
 import 'package:frog/domain/blocs/leaderboard/leaderboard_bloc.dart';
 import 'package:frog/domain/blocs/profile/profile_bloc.dart';
+import 'package:frog/domain/repositories/visit_repository.dart';
 import 'package:get_it/get_it.dart';
 
 import '../data/repositories/friends_repository_impl.dart';
@@ -60,6 +63,13 @@ void initDependencies() {
     ),
   );
 
+  getIt.registerLazySingleton<VisitRepository>(
+        () => VisitRepositoryImpl(
+      getIt<FirebaseFirestore>(),
+    ),
+  );
+
+
   // BLoCs
   // Реєстрація AuthBloc
   getIt.registerFactory<AuthBloc>(
@@ -73,6 +83,10 @@ void initDependencies() {
 
   getIt.registerFactory<FriendsBloc>(
         () => FriendsBloc(friendsRepository: getIt<FriendsRepository>()),
+  );
+
+  getIt.registerFactory<VisitBloc>(
+        () => VisitBloc(visitRepository: getIt<VisitRepository>(), authBloc: getIt<AuthBloc>()),
   );
 
   // Реєстрація ProfileBloc

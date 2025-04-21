@@ -202,7 +202,7 @@ class FrogEffectOverlay extends StatelessWidget {
                 child: Text(
                   effect.message,
                   style: TextStyle(
-                    fontSize: 48,
+                    fontSize: 40,
                     fontWeight: FontWeight.bold,
                     color: effect.backgroundColor,
                     shadows: [

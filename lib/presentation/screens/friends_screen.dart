@@ -1,6 +1,7 @@
 // Файл: presentation/screens/friends_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frog/presentation/screens/visit/friend_visit_screen.dart';
 import 'package:frog/presentation/widgets/frog_logo.dart';
 import 'package:frog/domain/repositories/friends_repository.dart';
 
@@ -9,7 +10,9 @@ import '../../domain/blocs/friends/friends_event.dart';
 import '../../domain/blocs/friends/friends_state.dart';
 import '../../domain/blocs/auth/auth_bloc.dart';
 import '../../domain/blocs/auth/auth_state.dart';
+import '../../domain/blocs/visit/visit_bloc.dart';
 import '../../domain/entities/user.dart';
+import '../../domain/repositories/visit_repository.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({Key? key}) : super(key: key);
@@ -234,6 +237,9 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
     );
   }
 
+// Оновлення у методі _buildFriendsList в файлі presentation/screens/friends_screen.dart
+// Додайте цей код в ListTile для переходу на екран візиту
+
   Widget _buildFriendsList(List<User> friends) {
     if (friends.isEmpty) {
       return _buildEmptyState('У вас поки що немає друзів');
@@ -272,6 +278,23 @@ class _FriendsScreenState extends State<FriendsScreen> with SingleTickerProvider
                 }
               },
             ),
+            // Add this code to make the ListTile navigate to FriendVisitScreen
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider<VisitBloc>(
+                    create: (context) => VisitBloc(
+                      visitRepository: context.read<VisitRepository>(),
+                      authBloc: context.read<AuthBloc>(),
+                    ),
+                    child: FriendVisitScreen(
+                      friendId: friend.id,
+                      friendName: friend.nickname,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         );
       },

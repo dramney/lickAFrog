@@ -11,10 +11,12 @@ import '../data/repositories/firebase_frog_repository.dart';
 import '../domain/blocs/auth/auth_event.dart';
 import '../domain/blocs/friends/friends_bloc.dart';
 import '../domain/blocs/frog/frog_bloc.dart';
+import '../domain/blocs/visit/visit_bloc.dart';
 import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/friends_repository.dart';
 import '../domain/repositories/frog_repository.dart';
 import '../domain/repositories/profile_repository.dart';
+import '../domain/repositories/visit_repository.dart';
 
 class FrogApp extends StatelessWidget {
   const FrogApp({super.key});
@@ -40,6 +42,9 @@ class FrogApp extends StatelessWidget {
         RepositoryProvider<FriendsRepository>(
           create: (_) => GetIt.instance<FriendsRepository>(),
         ),
+        RepositoryProvider<VisitRepository>(
+          create: (_) => GetIt.instance<VisitRepository>(),
+        ),
 
         // інші провайдери...
       ],
@@ -59,6 +64,11 @@ class FrogApp extends StatelessWidget {
           BlocProvider(
             create: (context) => FriendsBloc(
               friendsRepository: context.read<FriendsRepository>(),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => VisitBloc(
+              visitRepository: context.read<VisitRepository>(), authBloc: context.read<AuthBloc>(),
             ),
           ),
         ],
